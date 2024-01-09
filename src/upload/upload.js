@@ -16,12 +16,14 @@ import PatientTable from "../components/tables";
 import UploadButton from "../components/upload-buttons";
 import ModalPopUp from "../components/modal";
 import SideDrawer from "../components/drawer";
+import Footer from "../components/footer";
 // import Header from "../components/header/Header";
 
 function UploadFile() {
   const [fileInfoList, setFileInfoList] = useState([]);
   const [file, setFile] = useState(null);
   const [fileID, setFileID] = useState(null);
+  const [selectedFileName,setSelectedFileName] = useState('')
   const [pdfFileId, setPdfFileId] = useState("");
   const [open, setOpen] = useState(false);
   const [data, setData] = useState([]);
@@ -38,6 +40,7 @@ function UploadFile() {
   const [selectRowData, setSelectRowData] = useState();
   const [showPdfViewer, setShowPdfViewer] = useState(true);
   const [editMode, setEditMode] = useState(true);
+  const [activeMenu, setActiveMenu] = useState("patient");
   const [editedValuesRow, setEditedValuesRow] = useState();
 
   const handleChangeExport = (value) => {
@@ -132,7 +135,7 @@ function UploadFile() {
     setEditedRows(updatedData);
     try {
       const response = await fetch(
-        "https://anesthesia.encipherhealth.com/api/v1/patient-record/update",
+        "https://anesthesia.encipherhealth.com/api/v1/patient-paddingrecord/update",
         {
           method: "PUT",
           headers: {
@@ -176,7 +179,7 @@ function UploadFile() {
     if (progress > 0) {
       const intervalId = setInterval(() => {
         if (progress >= 99) {
-          clearInterval(intervalId); // Clear the interval when progress reaches 99
+          clearInterval(intervalId); // Clepatientar the interval when progress reaches 99
         } else {
           setProgress(progress + 1);
         }
@@ -218,22 +221,24 @@ function UploadFile() {
   const fetchFileList = async () => {
     try {
       const response = await axios.get(
-        "https://anesthesia.encipherhealth.com/api/v1/files/page?pageNo=0&pageSize=5",
-      
+        "https://anesthesia.encipherhealth.com/api/v1/files/page?pageNo=0&pageSize=5"
       );
 
       if (response?.data) {
         const info = response?.data?.value?.content;
         console.log(info);
-        const data = info.map((item) => ({id: item.fileId, name: item.originalFileName}))
-        setSeletedId(data[data.length - 1].id)
+        const data = info.map((item) => ({
+          id: item.fileId,
+          name: item.originalFileName,
+        }));
+        setSeletedId(data[0].id);
+        setSelectedFileName(data[0].name)
         // fetchAllRecord(data[data.length - 1].id)
         if (data) {
-          setFileInfoList(data)
+          setFileInfoList(data);
         } else {
-          setFileInfoList([])
+          setFileInfoList([]);
         }
-        
       }
     } catch (error) {
       console.error("Error fetching file list:", error);
@@ -255,6 +260,7 @@ function UploadFile() {
       console.error("Error fetching file list:", error);
     }
   };
+  console.log(data)
 
   //list show api
   // const fetchFileList = async () => {
@@ -263,7 +269,7 @@ function UploadFile() {
   //       "https://anesthesia.encipherhealth.com/api/v1/files"
   //     );
 
-  //     const data = await response.json();
+  //     const data = await response.json();padding
 
   //     setFileInfoList(data);
   //   } catch (error) {
@@ -356,9 +362,8 @@ function UploadFile() {
         : prevDatas;
     });
   };
-  
 
-  const fetchAllRecord = async(id) => {
+  const fetchAllRecord = async (id) => {
     try {
       if (id) {
         setFileID(id);
@@ -373,24 +378,30 @@ function UploadFile() {
     } catch (error) {
       console.error("Error fetching file list:", error);
     }
-  }
-
+  };
 
   useEffect(() => {
-    console.log(selectedId);
     if (selectedId) {
-      fetchAllRecord(selectedId)
+      fetchAllRecord(selectedId);
     }
-  }, [selectedId])
+  }, [selectedId]);
 
   return (
     <div>
       {/*    */}
-      <NewHeader />'
+      <NewHeader setActiveMenu={setActiveMenu} activeMenu={activeMenu} setOpen={setOpen}/>
       <div className="my-2">
-        <UploadButton fileID={fileID} setOpen={setOpen} selectedId={selectedId} />
+        <UploadButton
+          fileID={fileID}
+          setOpen={setOpen}
+          selectedId={selectedId}
+          setSelectedFileName={setSelectedFileName}
+          selectedFileName={selectedFileName}
+          setData={setData}
+          setSeletedId={setSeletedId}
+        />
       </div>
-      <PatientTable data={data} setData={setData} selectedId={selectedId}/>
+      <PatientTable data={data} setData={setData} selectedId={selectedId} />
       <ModalPopUp
         openPDF={openPDF}
         showPdfViewer={showPdfViewer}
@@ -411,8 +422,14 @@ function UploadFile() {
         setOpen={setOpen}
         setSeletedId={setSeletedId}
         list={fileInfoList}
+        setActiveMenu={setActiveMenu}
+        setSelectedFileName={setSelectedFileName}
+        selectedId={selectedId}
       />
+      <Footer />
     </div>
+
+    
   );
 }
 

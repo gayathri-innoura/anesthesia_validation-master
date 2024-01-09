@@ -23,6 +23,13 @@
   text-align: center !important;
   margin-right: 5px;
 }
+.classThead > tr > .endtitle {
+  margin: 0;
+  background-color: #04306f;
+  border-radius: 10px 10px 0 0 !important;
+  text-align: center !important;
+  margin-right: 5px;
+}
 .classThead > tr > .endBottomtitles {
   margin: 0;
   background-color: #04306f;
@@ -49,6 +56,14 @@
   background-color: #04306f;
   text-align: center !important;
   margin-right: 5px;
+}
+
+.classThead > tr > .titleList {
+  margin: 0;
+  background-color: #04306f;
+  text-align: center !important;
+  margin-right: 5px;
+  border-radius: 0 0 10px 10px;
 }
 .classThead > tr > .subTitle {
   margin: 0;
@@ -136,7 +151,7 @@
 }
 
 .classContaineer {
-  overflow: scroll;
+
   padding: 10px;
 }
 .firstTdBorder {
@@ -165,6 +180,14 @@
   margin-left: 20px;
   border-spacing: 0px 3px !important;
   background-color: #FFFFFF; 
+}
+
+.classTable > tbody > tr > .diagnosis {
+  background-color: #CEECFD; 
+  border-bottom: 1px solid #dbdbdb; 
+}
+.classTable > tbody > tr  {
+  cursor: pointer;
 }
 .classTable > tbody > tr > .diagnosis {
   background-color: #CEECFD; 

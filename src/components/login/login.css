@@ -1,0 +1,13 @@
+.login-style{
+    background-image: url('../../photos/background.avif');
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: flex;
+    margin: 0 auto;
+    width: 100%;
+    height: 100vh;
+}
+.login-style > div {
+    background-color: aliceblue;
+    border-radius: 25px;
+}

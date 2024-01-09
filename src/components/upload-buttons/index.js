@@ -5,8 +5,10 @@ import axios from "axios";
 import { Option } from "antd/es/mentions";
 import MultipleViewersSamePageExample from "../../upload/PdfViewFile";
 import {Drawer, Radio, Space } from 'antd';
+import { CloseCircleOutlined } from "@ant-design/icons";
 
-const UploadButton = ({fileID, setPdfFileId, setOpen, selectedId}) => {
+const UploadButton = ({fileID, setSeletedId, setData, selectedId, setSelectedFileName,
+  selectedFileName}) => {
   const [openPDF, setOpenPDF] = useState(false);
   const [pageNum, setPageNum] = useState();
   const [file, setFile] = useState(null);
@@ -90,6 +92,10 @@ const UploadButton = ({fileID, setPdfFileId, setOpen, selectedId}) => {
       if (response) {
         setProgress(100);
         // fetchFileList();
+        setSeletedId(response?.data?.value?.fileId)
+        // setSelectedFileName(response?.data?.value?.originalFileName)
+        setSelectedFileName(file?.name)
+
       }
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -107,16 +113,18 @@ const UploadButton = ({fileID, setPdfFileId, setOpen, selectedId}) => {
   }, [progress]);
   
   return (
-    <div className="d-flex justify-content-between mx-3">
-        <div> 
-        <Space>
-       
-        <Button type="primary" onClick={() => setOpen(true)}>
-          Open
-        </Button>
-      </Space>
-
-    </div>
+    <div className="d-flex justify-content-between mx-3 my-4">
+      {selectedFileName ? <div className="d-flex border px-5" style={{alignItems: 'center'}}>
+       <h5 className="p-2 mt-2 ">{selectedFileName}</h5>
+        <button
+            type="button"
+            className="btn btn-outline-danger p-1 px-2"
+            height="90px"
+            onClick={() => {setSelectedFileName(''); setData([]); setSeletedId('')}}
+          >
+           <CloseCircleOutlined />
+          </button>
+      </div> : 
       <div>
         <form action="/action_page.php" style={{ height: "36px" }}>
           <input
@@ -146,6 +154,7 @@ const UploadButton = ({fileID, setPdfFileId, setOpen, selectedId}) => {
           />
         )}
       </div>
+      }
       <div className="pdfView">
         <div>
           {" "}

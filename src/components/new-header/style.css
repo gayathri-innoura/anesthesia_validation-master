@@ -15,3 +15,25 @@
     letter-spacing: 2px;
     text-transform: uppercase;
 }
+
+.header-list {
+    align-items: center;
+}
+
+.header-list > li {
+    list-style: none;
+    margin: 0 10px;
+    padding: 21px;
+    text-transform: uppercase;
+    font-weight: 400;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.active {
+    border-bottom: 2px solid #04306f;
+}
+
+.logout {
+    cursor: pointer;
+}

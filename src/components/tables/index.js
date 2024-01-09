@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import TableStyle from "./styles.module.css";
+import imageColor from "../../photos/flagPeach.png";
 import {
   faSort,
   faSortUp,
@@ -51,7 +52,7 @@ function PatientTable({ data, setData, selectedId }) {
   const sortTableByAsc = async () => {
     try {
       const response = await axios.get(
-        `https://anesthesia.encipherhealth.com/api/v1/patient-record/sort/${fileID}`,
+        `https://anesthesia.encipherhealth.com/api/v1/patient-record/sort/${selectedId}`,
         {
           params: {
             sortBy: "pageNo",
@@ -68,7 +69,7 @@ function PatientTable({ data, setData, selectedId }) {
   const sortTableByAsc1 = async () => {
     try {
       const response = await axios.get(
-        `https://anesthesia.encipherhealth.com/api/v1/patient-record/sort/${fileID}`,
+        `https://anesthesia.encipherhealth.com/api/v1/patient-record/sort/${selectedId}`,
         {
           params: {
             sortBy: "qs",
@@ -192,6 +193,13 @@ function PatientTable({ data, setData, selectedId }) {
     });
   };
 
+  const getFirstName = (fullName) => {
+    const initials = fullName?.split(',');
+    const firstInitial = initials[0]?.charAt(0);
+    const secondInitial = initials[1]?.charAt(1);
+    return (firstInitial + secondInitial)
+  }
+
   return (
     <div className={TableStyle.classContaineer}>
       <table className={TableStyle.classTable}>
@@ -206,6 +214,8 @@ function PatientTable({ data, setData, selectedId }) {
             <th className={TableStyle.subsTitle} colSpan={4}>
               Diagnosis
             </th>
+            <th style={{ width: "10px" }}></th>
+            <th className={TableStyle.endtitle} colSpan={2}></th>
           </tr>
           <tr>
             <th className={TableStyle.bottomTitles}>SI.No</th>
@@ -235,15 +245,24 @@ function PatientTable({ data, setData, selectedId }) {
             <th className={TableStyle.title}>Anesthesiologist</th>
             <th className={TableStyle.title}>CRNA</th>
 
-            <th className={TableStyle.title}>ST </th>
-            <th className={TableStyle.title}> ET </th>
-            <th className={TableStyle.title}>TU</th>
-            <th className={TableStyle.title}>TTM</th>
+            <th className={TableStyle.title}>
+              <Tooltip title="Start Time">Start Time </Tooltip>
+            </th>
+            <th className={TableStyle.title}>
+              {" "}
+              <Tooltip title="End Time">End Time </Tooltip>{" "}
+            </th>
+            <th className={TableStyle.title}>
+              <Tooltip title="Time Unit">Time Unit </Tooltip>
+            </th>
+            <th className={TableStyle.title}>
+              <Tooltip title="Total Time In Min">TTM </Tooltip>
+            </th>
 
             <th className={TableStyle.title}>Anesthesia Type</th>
             <th className={TableStyle.title}>PM</th>
 
-            <th className={TableStyle.title}>
+            <th className={TableStyle.title} onClick={sortTableByAsc1}>
               <div
                 style={{
                   cursor: "pointer",
@@ -265,17 +284,26 @@ function PatientTable({ data, setData, selectedId }) {
 
             <th className={TableStyle.endBottomtitles}>ASA Code </th>
             <th style={{ width: "10px" }}></th>
-            <th className={TableStyle.subTitless}>D1</th>
-            <th className={TableStyle.subTitle}>D2</th>
-            <th className={TableStyle.subTitle}>D3</th>
-            <th className={TableStyle.subTitles}>D4</th>
-            <th>Edit</th>
+            <th className={TableStyle.subTitless}>
+              <Tooltip title="Diagnosis 1">D1 </Tooltip>
+            </th>
+            <th className={TableStyle.subTitle}>
+              <Tooltip title="Diagnosis 2">D2 </Tooltip>
+            </th>
+            <th className={TableStyle.subTitle}>
+              <Tooltip title="Diagnosis 3">D3 </Tooltip>
+            </th>
+            <th className={TableStyle.subTitles}>
+              <Tooltip title="Diagnosis 4">D4 </Tooltip>
+            </th>
+            <th style={{ width: "10px" }}></th>
+            <th className={TableStyle.titleList}>HW</th>
           </tr>
         </thead>
 
         <tbody>
-          {data?.length > 0 ? 
-            (data?.map((item, index) => {
+          {data?.length > 0 ? (
+            data?.map((item, index) => {
               const hasDiagnosisData =
                 item?.diagnosis[0] ||
                 item?.diagnosis[1] ||
@@ -288,7 +316,13 @@ function PatientTable({ data, setData, selectedId }) {
               return (
                 <tr
                   key={item.id}
-                  onClick={() => setSelectRowData(item)}
+                  onClick={() => {
+                    if (editIndex !== index) {
+                      openPdfViewer(item.pageNo - 1);
+                      setEditMode(false);
+                    }
+                    setSelectRowData(item);
+                  }}
                   style={rowStyle}
                   className="my-2"
                 >
@@ -297,22 +331,16 @@ function PatientTable({ data, setData, selectedId }) {
                   </td>
 
                   <td className={TableStyle.bodyContant}>
-                    {item?.patientName}
+                    {item?.patientName ? item?.patientName : "---"}
                   </td>
 
                   <td
-                    onClick={() => {
-                      if (editIndex !== index) {
-                        openPdfViewer(item.pageNo - 1);
-                        setEditMode(false);
-                      }
-                    }}
                     style={{
                       cursor: "pointer",
                       textDecoration: "underline",
                     }}
                   >
-                    {item?.pageNo}
+                    {item?.pageNo ? item?.pageNo : "---"}
                   </td>
                   <td>{item?.dateOfService}</td>
 
@@ -337,7 +365,6 @@ function PatientTable({ data, setData, selectedId }) {
                       <>{item?.anesthesiologistData?.[0]?.crnaName}</>
                     )}
                   </td>
-                  {console.log(item?.anesthesiologistData?.[0]?.crnaName)}
 
                   <td>{item?.startTime}</td>
                   <td>{item?.endTime}</td>
@@ -345,31 +372,45 @@ function PatientTable({ data, setData, selectedId }) {
                   <td>{item?.timeInMinutes}</td>
                   <td>{item?.anesthesiaType}</td>
                   <td>{item?.physicalModifier}</td>
-                  <td>{item?.qs}</td>
+                  <td>{item?.qs ? item?.qs : "---"}</td>
 
                   <td>
                     {item.asaCode.length > 1 ? (
                       <>
-                        {item.asaCode[0]} <StarFilled />
+                        {item.asaCode[0]?.icd10Code} <StarFilled />
                       </>
+                    ) : item.asaCode[0].icd10Code ? (
+                      item.asaCode[0].icd10Code
                     ) : (
-                      item.asaCode[0]
+                      "---"
                     )}
                   </td>
                   <td style={{ maxWidth: "10px", padding: 0 }}></td>
                   <td className={TableStyle.diagnosis1}>
-                    {item?.diagnosis[0] || null}
+                    {/* {item?.diagnosis[0] || null} */}
+                    {item?.diagnosis?.[0]?.icd10Code
+                      ? item?.diagnosis?.[0]?.icd10Code
+                      : "---"}
                   </td>
                   <td className={TableStyle.diagnosis}>
-                    {item?.diagnosis[1] || null}
+                    {/* {item?.diagnosis[1] || null} */}
+                    {item?.diagnosis?.[1]?.icd10Code
+                      ? item?.diagnosis?.[1]?.icd10Code
+                      : "---"}
                   </td>
                   <td className={TableStyle.diagnosis}>
-                    {item?.diagnosis[2] || null}
+                    {/* {item?.diagnosis[2] || null} */}
+                    {item?.diagnosis?.[2]?.icd10Code
+                      ? item?.diagnosis?.[2]?.icd10Code
+                      : "---"}
                   </td>
                   <td className={TableStyle.diagnosis2}>
-                    {item?.diagnosis[3] || null}
+                    {/* {item?.diagnosis[3] || null} */}
+                    {item?.diagnosis?.[3]?.icd10Code
+                      ? item?.diagnosis?.[3]?.icd10Code
+                      : "---"}
                   </td>
-
+                  <td style={{ maxWidth: "10px", padding: 0 }}></td>
                   <td>
                     <div style={{ zIndex: "999" }}>
                       {/* <Button
@@ -380,11 +421,24 @@ function PatientTable({ data, setData, selectedId }) {
                       >
                         <EditOutlined style={{ cursor: "pointer" }} />
                       </Button> */}
+                      {item?.containsHandwritten === true ? (
+                        <img
+                          src={imageColor}
+                          style={{ height: "20px", width: "10PX" }}
+                        />
+                      ) : (
+                        "-"
+                      )}
                     </div>
                   </td>
                 </tr>
               );
-            })) :  <td colSpan={17}><Empty /></td>}
+            })
+          ) : (
+            <td colSpan={17}>
+              <Empty />
+            </td>
+          )}
         </tbody>
       </table>
       <div></div>
@@ -419,9 +473,10 @@ function PatientTable({ data, setData, selectedId }) {
                 }}
               >
                 {selectRowData && (
-                  <div c>
-                    <h4>Selected Row Data</h4>
-                    <div></div>
+                  <div>
+                    <div className="d-flex justify-content-center py-3">
+                      <Avatar style={{ backgroundColor: '#04306F' }} size={70}>{getFirstName(selectRowData?.patientName)}</Avatar>
+                    </div>
 
                     <div class="values">
                       <div>Patient Name</div>
@@ -620,34 +675,34 @@ function PatientTable({ data, setData, selectedId }) {
                       ) : (
                         <div>
                           {selectRowData?.asaCode.length > 1
-                            ? `${selectRowData?.asaCode[0]}, ${selectRowData?.asaCode[1]}`
-                            : selectRowData?.asaCode[0]}
+                            ? `${selectRowData?.asaCode[0]?.icd10Code}, ${selectRowData?.asaCode[1]?.icd10Code}`
+                            : selectRowData?.asaCode[0]?.icd10Code}
                         </div>
                       )}
                       <div>Diagnosis 1</div>
                       {editMode ? (
                         <input
                           type="text"
-                          value={editedValuesRow?.diagnosis[0]}
+                          value={editedValuesRow?.diagnosis[0]?.icd10Code}
                           onChange={(e) =>
                             handleEditChangeRow("diagnosis", e.target.value, 0)
                           }
                         />
                       ) : (
-                        <div>{selectRowData?.diagnosis[0]}</div>
+                        <div>{selectRowData?.diagnosis[0]?.icd10Code}</div>
                       )}
 
                       <div>Diagnosis 2</div>
                       {editMode ? (
                         <input
                           type="text"
-                          value={editedValuesRow?.diagnosis[1]}
+                          value={editedValuesRow?.diagnosis[1]?.icd10Code}
                           onChange={(e) =>
                             handleEditChangeRow("diagnosis", e.target.value, 1)
                           }
                         />
                       ) : (
-                        <div>{selectRowData?.diagnosis[1]}</div>
+                        <div>{selectRowData?.diagnosis[1]?.icd10Code}</div>
                       )}
 
                       <div>Diagnosis 3</div>
@@ -655,26 +710,26 @@ function PatientTable({ data, setData, selectedId }) {
                       {editMode ? (
                         <input
                           type="text"
-                          value={editedValuesRow?.diagnosis[2]}
+                          value={editedValuesRow?.diagnosis[2]?.icd10Code}
                           onChange={(e) =>
                             handleEditChangeRow("diagnosis", e.target.value, 2)
                           }
                         />
                       ) : (
-                        <div>{selectRowData?.diagnosis[2]}</div>
+                        <div>{selectRowData?.diagnosis[2]?.icd10Code}</div>
                       )}
 
                       <div>Diagnosis 4</div>
                       {editMode ? (
                         <input
                           type="text"
-                          value={editedValuesRow?.diagnosis[3]}
+                          value={editedValuesRow?.diagnosis[3]?.icd10Code}
                           onChange={(e) =>
                             handleEditChangeRow("diagnosis", e.target.value, 3)
                           }
                         />
                       ) : (
-                        <div>{selectRowData?.diagnosis[3]}</div>
+                        <div>{selectRowData?.diagnosis[3]?.icd10Code}</div>
                       )}
 
                       {!editMode && (
