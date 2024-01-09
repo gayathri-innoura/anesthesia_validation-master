@@ -379,7 +379,7 @@ function UploadFile() {
   useEffect(() => {
     console.log(selectedId);
     if (selectedId) {
-      fetchAllRecord('722469b9-ad7e-4037-a91e-f861585ea77b')
+      fetchAllRecord(selectedId)
     }
   }, [selectedId])
 
