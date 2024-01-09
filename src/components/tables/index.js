@@ -636,6 +636,22 @@ function PatientTable({ data, setData, selectedId }) {
                       ) : (
                         <div>{selectRowData?.physicalModifier}</div>
                       )}
+                       <div>PQRS</div>
+                      {editMode ? (
+                        <input
+                          type="text"
+                        />
+                      ) : (
+                        <div></div>
+                      )}
+                       <div>Postoperative Pain Blocks</div>
+                      {editMode ? (
+                        <input
+                          type="text"
+                        />
+                      ) : (
+                        <div></div>
+                      )}
                       <div>Modifier</div>
                       {editMode ? (
                         <input
