@@ -1,0 +1,45 @@
+.pdfView{
+    display: flex;
+    justify-content: end;
+}
+
+.button1{
+    background-color:  #E7CBB1;
+}
+.dropDown{
+    background-color: #2E6B4C;
+}
+.uploadPdf{
+    display: flex;
+    justify-self: start;
+}
+
+
+
+.upload-container{
+    margin-right: 1242px;
+    margin-top: 0px;
+}
+
+/* .custom-select {
+    position: relative;
+    width: 84px;
+    height: 33px;
+    background-color: #2E6B4C;
+    border: 1px solid #2E6B4C;
+    appearance: none; 
+    padding-right: 30px; 
+    cursor: pointer;
+    color: white;
+  }
+
+  /* Style the download icon pseudo-element */
+  /* .custom-select::after {
+    content: '\f019'; 
+    font-family: 'Font Awesome 5 Free'; 
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    color: white;
+  } */ 

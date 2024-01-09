@@ -13,17 +13,23 @@ import MultipleViewersSamePageExample from "./PdfViewFile";
 import { Option } from "antd/es/mentions";
 import NewHeader from "../components/new-header";
 import PatientTable from "../components/tables";
+import UploadButton from "../components/upload-buttons";
+import ModalPopUp from "../components/modal";
+import SideDrawer from "../components/drawer";
 // import Header from "../components/header/Header";
 
 function UploadFile() {
   const [fileInfoList, setFileInfoList] = useState([]);
   const [file, setFile] = useState(null);
   const [fileID, setFileID] = useState(null);
+  const [pdfFileId, setPdfFileId] = useState("");
+  const [open, setOpen] = useState(false);
   const [data, setData] = useState([]);
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [sortOrder1, setSortOrder1] = useState("asc");
+  const [selectedId, setSeletedId] = useState("");
   const [editIndex, setEditIndex] = useState(null);
   const [filename, setFileName] = useState(null);
   const [openPDF, setOpenPDF] = useState(false);
@@ -93,10 +99,7 @@ function UploadFile() {
           [field]: value,
           diagnosis: updatedDiagnosis,
         };
-      }
-      
-      
-      else if (field === "supervisorName" || field === "crnaName") {
+      } else if (field === "supervisorName" || field === "crnaName") {
         const updatedAnesthesiologistData =
           prevValues.anesthesiologistData?.map((item) => {
             if (field === "supervisorName") {
@@ -183,7 +186,7 @@ function UploadFile() {
       return () => clearInterval(intervalId);
     }
   }, [progress]);
-  
+
   const handleUpload = async () => {
     if (!file) {
       console.error("No file selected");
@@ -206,7 +209,6 @@ function UploadFile() {
       );
       if (response) {
         setProgress(100);
-        fetchFileList();
       }
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -216,14 +218,22 @@ function UploadFile() {
   const fetchFileList = async () => {
     try {
       const response = await axios.get(
-        "https://anesthesia.encipherhealth.com/api/v1/files"
+        "https://anesthesia.encipherhealth.com/api/v1/files/page?pageNo=0&pageSize=5",
+      
       );
 
       if (response?.data) {
-        const info = response?.data?.value;
-        const fieldId = info[info?.length - 1]?.fileId;
-
-        displatTable(fieldId);
+        const info = response?.data?.value?.content;
+        console.log(info);
+        const data = info.map((item) => ({id: item.fileId, name: item.originalFileName}))
+        setSeletedId(data[data.length - 1].id)
+        // fetchAllRecord(data[data.length - 1].id)
+        if (data) {
+          setFileInfoList(data)
+        } else {
+          setFileInfoList([])
+        }
+        
       }
     } catch (error) {
       console.error("Error fetching file list:", error);
@@ -232,22 +242,19 @@ function UploadFile() {
   const displatTable = async (id) => {
     try {
       if (id) {
-        setFileID(id)
+        setFileID(id);
         const response = await axios.get(
           `https://anesthesia.encipherhealth.com/api/v1/anesthesia/${id}`
         );
 
         if (response?.data) {
-          setData(response?.data?.value)
-          
+          setData(response?.data?.value);
         }
       }
     } catch (error) {
       console.error("Error fetching file list:", error);
     }
   };
-
-
 
   //list show api
   // const fetchFileList = async () => {
@@ -265,13 +272,12 @@ function UploadFile() {
   // };
   //download api
   const handleDownload = async (fileId) => {
-   
     const res = await axios
       .get(
         `https://anesthesia.encipherhealth.com/api/v1/patient-record/download/${fileId}`
       )
       .then((res) => res.data.value);
-      console.log(res.data)
+    console.log(res.data);
     const link = document.createElement("a");
     link.href = res.downloadUrl;
     link.setAttribute("download", "downloaded_excel.xlsx");
@@ -279,11 +285,11 @@ function UploadFile() {
     link.click();
     document.body.removeChild(link);
   };
-  // useEffect(() => {
-  //   if (!fileInfoList.length) {
-  //     fetchFileList();
-  //   }
-  // }, [fileInfoList]);
+  useEffect(() => {
+    if (!fileInfoList.length) {
+      fetchFileList();
+    }
+  }, []);
 
   // useEffect(() => {
   //   fetchFileList();
@@ -299,36 +305,7 @@ function UploadFile() {
       }, 3000);
     }
   }, [progress]);
-  //tables view api
-  // useEffect(() => {
-  // if(fileID){
-  //   fetch(`https://anesthesia.encipherhealth.com/api/v1/anesthesia/${fileID}`)
-  //   .then((response) => response.json())
-  //   .then((specificPatientData) => {
 
-  //     const data = specificPatientData?.value
-
-  //     // Set the specific patient data to the state
-
-  //     setData(data);
-
-  //   });
-  // }
-  // }, [fileID ]);
-
-  // useEffect(() => {
-  //   fetch(`https://anesthesia.encipherhealth.com/api/v1/anesthesia/${fileID}`)
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       // Find the specific patient data you want to set
-  //       const specificPatientData = data.value.find(patient => patient.patientId === '658e979ff95d0237cb921ec5');
-
-  //       // Set the specific patient data to the state
-  //       setData(specificPatientData);
-  //     });
-  // }, [fileID]);
-
-  // sort by order
   const sortTableByAsc = async () => {
     try {
       const response = await axios.get(
@@ -379,330 +356,62 @@ function UploadFile() {
         : prevDatas;
     });
   };
-  console.log(selectRowData)
+  
+
+  const fetchAllRecord = async(id) => {
+    try {
+      if (id) {
+        setFileID(id);
+        const response = await axios.get(
+          `https://anesthesia.encipherhealth.com/api/v1/anesthesia/${id}`
+        );
+
+        if (response?.data) {
+          setData(response?.data?.value);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching file list:", error);
+    }
+  }
+
+
+  useEffect(() => {
+    console.log(selectedId);
+    if (selectedId) {
+      fetchAllRecord('722469b9-ad7e-4037-a91e-f861585ea77b')
+    }
+  }, [selectedId])
 
   return (
-    <div >
+    <div>
       {/*    */}
-      <NewHeader/>
-      <PatientTable />
-      
-
-      {openPDF && (
-        <Modal
-          open={openPDF}
-          onOk={() => {
-            replaceValues(selectRowData?.patientId, editedValuesRow);
-            setOpenPDF(false);
-          }}
-          onCancel={() => setOpenPDF(false)}
-          style={{ marginTop: "-50px" }}
-          width="90%"
-          height="auto"
-        >
-          <div style={{ display: "flex", width: "100%" }}>
-            <div style={{ width: "100%" }}>
-              <MultipleViewersSamePageExample
-                fileID={fileID}
-                pageNumber={pageNum}
-              />
-            </div>
-
-            {showPdfViewer && (
-              <div
-                style={{
-                  width: "30%",
-                  padding: "10px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  backgroundColor: "#E4E7E7",
-                }}
-              >
-                {selectRowData && (
-                  <div c>
-                    <h4>Selected Row Data</h4>
-                    <div></div>
-
-                    <div class="values">
-                      <div>Patient Name</div>
-
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.patientName}
-                          onChange={(e) =>
-                            handleEditChangeRow("patientName", e.target.value)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData.patientName}</div>
-                      )}
-
-                      <div>Page No</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.pageNo}
-                          onChange={(e) =>
-                            handleEditChangeRow("pageNo", e.target.value)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.pageNo}</div>
-                      )}
-                      <div>DOS</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.dateOfService}
-                          onChange={(e) =>
-                            handleEditChangeRow("dateOfService", e.target.value)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.dateOfService}</div>
-                      )}
-                      <div>Anesthesiologist</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={
-                            editedValuesRow?.anesthesiologistData?.[0]
-                              ?.supervisorName
-                          }
-                          onChange={(e) =>
-                            handleEditChangeRow(
-                              "supervisorName",
-                              e.target.value
-                            )
-                          }
-                        />
-                      ) : (
-                        <div>
-                          {/* {
-                            selectRowData?.anesthesiologistData?.[0]
-                              ?.supervisorName
-                          } */}
-                          {selectRowData?.anesthesiologistData
-      ?.map((item) => item.supervisorName)
-      ?.join(', ')}
-                        </div>
-                      )}
-                      <div>CRNA</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={
-                            editedValuesRow?.anesthesiologistData?.[0]?.crnaName
-                          }
-                          onChange={(e) =>
-                            handleEditChangeRow("crnaName", e.target.value)
-                          }
-                        />
-                      ) : (
-                        <div>
-                          {/* {selectRowData?.anesthesiologistData?.[0]?.crnaName} */}
-                          {selectRowData?.anesthesiologistData
-      ?.map((item) => item.crnaName)
-      ?.join(', ')}
-                        </div>
-                      )}
-                      <div>Start Time</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.startTime}
-                          onChange={(e) =>
-                            handleEditChangeRow("startTime", e.target.value)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.startTime}</div>
-                      )}
-                      <div>End Time</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.endTime}
-                          onChange={(e) =>
-                            handleEditChangeRow("endTime", e.target.value)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.endTime}</div>
-                      )}
-                      <div>Time Unit</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.timeUnit}
-                          onChange={(e) =>
-                            handleEditChangeRow("timeUnit", e.target.value)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.timeUnit}</div>
-                      )}
-                      <div>Total time in Minutes</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.timeInMinutes}
-                          onChange={(e) =>
-                            handleEditChangeRow("timeInMinutes", e.target.value)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.timeInMinutes}</div>
-                      )}
-                      <div>Anesthesia Type</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.anesthesiaType}
-                          onChange={(e) =>
-                            handleEditChangeRow(
-                              "anesthesiaType",
-                              e.target.value
-                            )
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.anesthesiaType}</div>
-                      )}
-                      <div>Physical Modifier</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.physicalModifier}
-                          onChange={(e) =>
-                            handleEditChangeRow(
-                              "physicalModifier",
-                              e.target.value
-                            )
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.physicalModifier}</div>
-                      )}
-                      <div>Modifier</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.qs}
-                          onChange={(e) =>
-                            handleEditChangeRow("qs", e.target.value)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.qs}</div>
-                      )}
-                      <div>ASA</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.asaCode}
-                          onChange={(e) =>
-                            handleEditChangeRow("asaCode", e.target.value)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.asaCode}</div>
-                      )}
-                      {/* <div>ASA</div>
-{editMode ? (
-  <input
-    type="text"
-    value={editedValuesRow?.asaCode.join(", ")} // Join the array values with a comma and space
-    onChange={(e) =>
-      handleEditChangeRow("asaCode", e.target.value.split(", "))
-    }
-  />
-) : (
-  <div>
-    {selectRowData?.asaCode.length > 1
-      ? `${selectRowData?.asaCode[0]}, ${selectRowData?.asaCode[1]}`
-      : selectRowData?.asaCode[0]}
-  </div>
-)} */}
-                      <div>Diagnosis 1</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.diagnosis[0]}
-                          onChange={(e) =>
-                            handleEditChangeRow("diagnosis", e.target.value, 0)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.diagnosis[0]}</div>
-                      )}
-
-                      <div>Diagnosis 2</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.diagnosis[1]}
-                          onChange={(e) =>
-                            handleEditChangeRow("diagnosis", e.target.value, 1)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.diagnosis[1]}</div>
-                      )}
-
-                      <div>Diagnosis 3</div>
-
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.diagnosis[2]}
-                          onChange={(e) =>
-                            handleEditChangeRow("diagnosis", e.target.value, 2)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.diagnosis[2]}</div>
-                      )}
-
-                      <div>Diagnosis 4</div>
-                      {editMode ? (
-                        <input
-                          type="text"
-                          value={editedValuesRow?.diagnosis[3]}
-                          onChange={(e) =>
-                            handleEditChangeRow("diagnosis", e.target.value, 3)
-                          }
-                        />
-                      ) : (
-                        <div>{selectRowData?.diagnosis[3]}</div>
-                      )}
-
-                      {!editMode && (
-                        <Button
-                          className="editButton"
-                          onClick={handleEditClickRow}
-                        >
-                          Edit
-                        </Button>
-                      )}
-
-                      {editMode && (
-                        <>
-                          <Button onClick={handleSaveClickRow}>Save</Button>
-                          <Button onClick={() => setEditMode(false)}>
-                            Cancel
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </Modal>
-      )}
+      <NewHeader />'
+      <div className="my-2">
+        <UploadButton fileID={fileID} setOpen={setOpen} selectedId={selectedId} />
+      </div>
+      <PatientTable data={data} setData={setData} selectedId={selectedId}/>
+      <ModalPopUp
+        openPDF={openPDF}
+        showPdfViewer={showPdfViewer}
+        replaceValues={replaceValues}
+        setOpenPDF={setOpenPDF}
+        selectRowData={selectRowData}
+        editedValuesRow={editedValuesRow}
+        editMode={editMode}
+        handleEditChangeRow={handleEditChangeRow}
+        handleEditClickRow={handleEditClickRow}
+        setEditMode={setEditMode}
+        handleSaveClickRow={handleSaveClickRow}
+        fileID={fileID}
+        pageNum={pageNum}
+      />
+      <SideDrawer
+        open={open}
+        setOpen={setOpen}
+        setSeletedId={setSeletedId}
+        list={fileInfoList}
+      />
     </div>
   );
 }

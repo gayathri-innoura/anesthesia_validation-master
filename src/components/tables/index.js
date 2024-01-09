@@ -25,19 +25,10 @@ import {
 import axios from "axios";
 import MultipleViewersSamePageExample from "../../upload/PdfViewFile";
 
-function PatientTable({
-  patinetListAll = [],
-  actionBodyTemplate,
-  statusBodyTemplate,
-  patientDetails,
-  paginationFirst,
-  totalElements,
-  onPageChange,
-}) {
+function PatientTable({ data, setData, selectedId }) {
   const [sortOrder, setSortOrder] = useState("asc");
   const [sortOrder1, setSortOrder1] = useState("asc");
   const [fileID, setFileID] = useState(null);
-  const [data, setData] = useState([]);
   const [selectRowData, setSelectRowData] = useState();
   const [editIndex, setEditIndex] = useState(null);
   const [pageNum, setPageNum] = useState();
@@ -54,29 +45,10 @@ function PatientTable({
     setShowPdfViewer(true);
   };
 
-  const displatTable = async (id) => {
-    try {
-      if (id) {
-        setFileID(id);
-        const response = await axios.get(
-          `https://anesthesia.encipherhealth.com/api/v1/anesthesia/${id}`
-        );
-
-        if (response?.data) {
-          setData(response?.data?.value);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching file list:", error);
-    }
-  };
-
   console.log(data);
-  useEffect(() => {
-    displatTable("3360d4ee-2245-4710-beb8-d91055b021dc");
-  }, []);
-   // sort by order
-   const sortTableByAsc = async () => {
+
+  // sort by order
+  const sortTableByAsc = async () => {
     try {
       const response = await axios.get(
         `https://anesthesia.encipherhealth.com/api/v1/patient-record/sort/${fileID}`,
@@ -153,10 +125,7 @@ function PatientTable({
           [field]: value,
           diagnosis: updatedDiagnosis,
         };
-      }
-      
-      
-      else if (field === "supervisorName" || field === "crnaName") {
+      } else if (field === "supervisorName" || field === "crnaName") {
         const updatedAnesthesiologistData =
           prevValues.anesthesiologistData?.map((item) => {
             if (field === "supervisorName") {
@@ -228,15 +197,21 @@ function PatientTable({
       <table className={TableStyle.classTable}>
         <thead className={TableStyle.classThead}>
           <tr>
-            <th colSpan={6}></th>
-            <th colSpan={4} align="center">TIME</th>
-            <th></th>
+            <th className={TableStyle.startTitles} colSpan={6}></th>
+            <th className={TableStyle.title} colSpan={4} align="center">
+              TIME
+            </th>
+            <th className={TableStyle.endtitles} colSpan={4}></th>
+            <th style={{ width: "10px" }}></th>
+            <th className={TableStyle.subsTitle} colSpan={4}>
+              Diagnosis
+            </th>
           </tr>
           <tr>
-            <th>SI.No</th>
-            <th>Patient Name</th>
+            <th className={TableStyle.bottomTitles}>SI.No</th>
+            <th className={TableStyle.title}>Patient Name</th>
 
-            <th  onClick={sortTableByAsc}>
+            <th className={TableStyle.title} onClick={sortTableByAsc}>
               <div
                 style={{
                   cursor: "pointer",
@@ -256,19 +231,19 @@ function PatientTable({
                 </div>
               </div>
             </th>
-            <th>Date of Service</th>
-            <th>Anesthesiologist</th>
-            <th>CRNA</th>
+            <th className={TableStyle.title}>DOS</th>
+            <th className={TableStyle.title}>Anesthesiologist</th>
+            <th className={TableStyle.title}>CRNA</th>
 
-            <th>ST </th>
-            <th> ET </th>
-            <th>TU</th>
-            <th>TTM</th>
+            <th className={TableStyle.title}>ST </th>
+            <th className={TableStyle.title}> ET </th>
+            <th className={TableStyle.title}>TU</th>
+            <th className={TableStyle.title}>TTM</th>
 
-            <th>Anesthesia Type</th>
-            <th>Physical Modifier </th>
+            <th className={TableStyle.title}>Anesthesia Type</th>
+            <th className={TableStyle.title}>PM</th>
 
-            <th>
+            <th className={TableStyle.title}>
               <div
                 style={{
                   cursor: "pointer",
@@ -288,18 +263,19 @@ function PatientTable({
               </div>
             </th>
 
-            <th>ASA Code </th>
-            <th>D 1</th>
-            <th>D 2</th>
-            <th>D 3</th>
-            <th>D 4</th>
+            <th className={TableStyle.endBottomtitles}>ASA Code </th>
+            <th style={{ width: "10px" }}></th>
+            <th className={TableStyle.subTitless}>D1</th>
+            <th className={TableStyle.subTitle}>D2</th>
+            <th className={TableStyle.subTitle}>D3</th>
+            <th className={TableStyle.subTitles}>D4</th>
             <th>Edit</th>
           </tr>
         </thead>
 
         <tbody>
-          {data?.length > 0 &&
-            data?.map((item, index) => {
+          {data?.length > 0 ? 
+            (data?.map((item, index) => {
               const hasDiagnosisData =
                 item?.diagnosis[0] ||
                 item?.diagnosis[1] ||
@@ -308,15 +284,21 @@ function PatientTable({
               const rowStyle = hasDiagnosisData
                 ? {}
                 : { backgroundColor: "#e08515" };
+
               return (
                 <tr
                   key={item.id}
                   onClick={() => setSelectRowData(item)}
                   style={rowStyle}
+                  className="my-2"
                 >
-                  <td>{index + 1}</td>
+                  <td className={`border-start border-top border-bottom`}>
+                    {index + 1}
+                  </td>
 
-                  <td>{item?.patientName}</td>
+                  <td className={TableStyle.bodyContant}>
+                    {item?.patientName}
+                  </td>
 
                   <td
                     onClick={() => {
@@ -334,52 +316,28 @@ function PatientTable({
                   </td>
                   <td>{item?.dateOfService}</td>
 
-                  {/* <td>
-                          <>
-                            {item?.anesthesiologistData?.[0]?.supervisorName ||
-                              "-"}
-                          </>
-                        </td> */}
                   <td>
-                    {item?.anesthesiologistData?.[0]?.supervisorName ? (
+                    {item?.anesthesiologistData?.length > 1 ? (
                       <>
-                        {
-                          item.anesthesiologistData[0].supervisorName.split(
-                            " "
-                          )[0]
-                        }
-                        {item.anesthesiologistData.length > 1 &&
-                        item.anesthesiologistData[0].supervisorName.split(" ")
-                          .length > 1 ? (
-                          <StarFilled />
-                        ) : (
-                          ""
-                        )}
+                        {item?.anesthesiologistData?.[0]?.supervisorName}
+                        <StarFilled />
                       </>
                     ) : (
-                      "-"
+                      <>{item?.anesthesiologistData?.[0]?.supervisorName}</>
                     )}
                   </td>
 
-                  {/* <td>
-                          {item?.anesthesiologistData?.[0]?.crnaName || "-"}
-                        </td> */}
                   <td>
-                    {item?.anesthesiologistData?.[0]?.crnaName ? (
+                    {item?.anesthesiologistData?.length > 1 ? (
                       <>
-                        {item.anesthesiologistData[0].crnaName.split(" ")[0]}
-                        {item.anesthesiologistData.length > 1 &&
-                        item.anesthesiologistData[0].crnaName.split(" ")
-                          .length > 1 ? (
-                          <StarFilled />
-                        ) : (
-                          ""
-                        )}
+                        {item?.anesthesiologistData?.[0]?.crnaName}
+                        <StarFilled />
                       </>
                     ) : (
-                      "-"
+                      <>{item?.anesthesiologistData?.[0]?.crnaName}</>
                     )}
                   </td>
+                  {console.log(item?.anesthesiologistData?.[0]?.crnaName)}
 
                   <td>{item?.startTime}</td>
                   <td>{item?.endTime}</td>
@@ -388,52 +346,45 @@ function PatientTable({
                   <td>{item?.anesthesiaType}</td>
                   <td>{item?.physicalModifier}</td>
                   <td>{item?.qs}</td>
-                  <td>{item?.asaCode}</td>
 
-                  <td
-                    // style={{
-                    //   backgroundColor: hasDiagnosisData ? "#eee4ff" : "#e08515",
-                    // }}
-                  >
+                  <td>
+                    {item.asaCode.length > 1 ? (
+                      <>
+                        {item.asaCode[0]} <StarFilled />
+                      </>
+                    ) : (
+                      item.asaCode[0]
+                    )}
+                  </td>
+                  <td style={{ maxWidth: "10px", padding: 0 }}></td>
+                  <td className={TableStyle.diagnosis1}>
                     {item?.diagnosis[0] || null}
                   </td>
-                  <td
-                    // style={{
-                    //   backgroundColor: hasDiagnosisData ? "#eee4ff" : "#e08515",
-                    // }}
-                  >
+                  <td className={TableStyle.diagnosis}>
                     {item?.diagnosis[1] || null}
                   </td>
-                  <td
-                    // style={{
-                    //   backgroundColor: hasDiagnosisData ? "#eee4ff" : "#e08515",
-                    // }}
-                  >
+                  <td className={TableStyle.diagnosis}>
                     {item?.diagnosis[2] || null}
                   </td>
-                  <td
-                    // style={{
-                    //   backgroundColor: hasDiagnosisData ? "#eee4ff" : "#e08515",
-                    // }}
-                  >
+                  <td className={TableStyle.diagnosis2}>
                     {item?.diagnosis[3] || null}
                   </td>
 
                   <td>
                     <div style={{ zIndex: "999" }}>
-                            <Button
-                              onClick={() => {
-                                openPdfViewer(item.pageNo - 1);
-                                handleEditClickRow();
-                              }}
-                            >
-                              <EditOutlined style={{ cursor: "pointer" }} />
-                            </Button>
-                          </div>
+                      {/* <Button
+                        onClick={() => {
+                          openPdfViewer(item.pageNo - 1);
+                          handleEditClickRow();
+                        }}
+                      >
+                        <EditOutlined style={{ cursor: "pointer" }} />
+                      </Button> */}
+                    </div>
                   </td>
                 </tr>
               );
-            })}
+            })) :  <td colSpan={17}><Empty /></td>}
         </tbody>
       </table>
       <div></div>
@@ -452,7 +403,7 @@ function PatientTable({
           <div style={{ display: "flex", width: "100%" }}>
             <div style={{ width: "100%" }}>
               <MultipleViewersSamePageExample
-                fileID={fileID}
+                fileID={selectedId}
                 pageNumber={pageNum}
               />
             </div>
@@ -464,7 +415,7 @@ function PatientTable({
                   padding: "10px",
                   display: "flex",
                   justifyContent: "space-between",
-                  backgroundColor: "#E4E7E7",
+                  backgroundColor: "#E6F0FE",
                 }}
               >
                 {selectRowData && (
@@ -528,13 +479,9 @@ function PatientTable({
                         />
                       ) : (
                         <div>
-                          {/* {
-                            selectRowData?.anesthesiologistData?.[0]
-                              ?.supervisorName
-                          } */}
                           {selectRowData?.anesthesiologistData
-      ?.map((item) => item.supervisorName)
-      ?.join(', ')}
+                            ?.map((item) => item.supervisorName)
+                            ?.join(", ")}
                         </div>
                       )}
                       <div>CRNA</div>
@@ -552,8 +499,8 @@ function PatientTable({
                         <div>
                           {/* {selectRowData?.anesthesiologistData?.[0]?.crnaName} */}
                           {selectRowData?.anesthesiologistData
-      ?.map((item) => item.crnaName)
-      ?.join(', ')}
+                            ?.map((item) => item.crnaName)
+                            ?.join(", ")}
                         </div>
                       )}
                       <div>Start Time</div>
@@ -646,7 +593,7 @@ function PatientTable({
                       ) : (
                         <div>{selectRowData?.qs}</div>
                       )}
-                      <div>ASA</div>
+                      {/* <div>ASA</div>
                       {editMode ? (
                         <input
                           type="text"
@@ -657,23 +604,26 @@ function PatientTable({
                         />
                       ) : (
                         <div>{selectRowData?.asaCode}</div>
+                      )} */}
+                      <div>ASA</div>
+                      {editMode ? (
+                        <input
+                          type="text"
+                          value={editedValuesRow?.asaCode.join(", ")} // Join the array values with a comma and space
+                          onChange={(e) =>
+                            handleEditChangeRow(
+                              "asaCode",
+                              e.target.value.split(", ")
+                            )
+                          }
+                        />
+                      ) : (
+                        <div>
+                          {selectRowData?.asaCode.length > 1
+                            ? `${selectRowData?.asaCode[0]}, ${selectRowData?.asaCode[1]}`
+                            : selectRowData?.asaCode[0]}
+                        </div>
                       )}
-                      {/* <div>ASA</div>
-{editMode ? (
-  <input
-    type="text"
-    value={editedValuesRow?.asaCode.join(", ")} // Join the array values with a comma and space
-    onChange={(e) =>
-      handleEditChangeRow("asaCode", e.target.value.split(", "))
-    }
-  />
-) : (
-  <div>
-    {selectRowData?.asaCode.length > 1
-      ? `${selectRowData?.asaCode[0]}, ${selectRowData?.asaCode[1]}`
-      : selectRowData?.asaCode[0]}
-  </div>
-)} */}
                       <div>Diagnosis 1</div>
                       {editMode ? (
                         <input
